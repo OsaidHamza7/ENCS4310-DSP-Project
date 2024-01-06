@@ -4,9 +4,11 @@ from tkinter import messagebox
 import sounddevice as sd
 from scipy.io.wavfile import write
 
+from tkinter.simpledialog import askstring
+from tkinter.messagebox import showinfo
 
 # Constants
-SAMPLE_RATE = 8000  # Sample rate in Hz
+SAMPLE_RATE = 44100  # Sample rate in Hz
 CHARACTER_DURATION = 0.04  # Duration of each character in seconds
 VOLUME = 0.5  # Volume, as a float between 0.0 and 1.0
 
@@ -23,6 +25,16 @@ FREQUENCIES = {
     'y': [500, 1500, 2500], 'z': [500, 1500, 3000], ' ': [500, 1500, 3500]
 }
 
+def generate_character_signal(frequencies):
+    tones = []
+    for freq in frequencies:
+        t = np.linspace(0, CHARACTER_DURATION, int(SAMPLE_RATE * CHARACTER_DURATION), False)
+        tone = np.sin(freq * t * 2 * np.pi)
+        tones.append(tone)
+    combined_tone = sum(tones)
+    combined_tone *= VOLUME / np.max(np.abs(combined_tone))
+    return combined_tone
+
 def encode_string_to_signal(input_string):
     signal = np.array([])
     for char in input_string:
@@ -32,51 +44,41 @@ def encode_string_to_signal(input_string):
     return signal
 
 
-def generate_character_signal(frequencies):
-    tones = []
-    sample_rate=44100
-    for freq in frequencies:
-        t = np.linspace(0, CHARACTER_DURATION, int(sample_rate * CHARACTER_DURATION), False)
-        tone = np.sin(freq * t * 2 * np.pi)
-        tones.append(tone)
-    combined_tone = sum(tones)
-    combined_tone *= VOLUME / np.max(np.abs(combined_tone))
-    return combined_tone
-
-
-#GUI Functions
-def encode_and_save():
-    input_text = text_entry.get("1.0", tk.END).strip()
+def getInputString():
+    input_text = text_entry.get("1.0", tk.END).strip().lower()
     if not input_text:
         messagebox.showerror("Error", "Please enter some text to encode.")
         return
+    return input_text
 
-    encoded_signal = encode_string_to_signal(input_text.lower())
-    fileName=input("Please enter the name of file to save the generated signal:\n")
+def encode():
+    input_text=getInputString()
+    encoded_signal = encode_string_to_signal(input_text)
+    return encoded_signal
 
-    filepath=f"{fileName}.wav"
-    if filepath:
+def save_generated_signal():
+
+    encoded_signal = encode()
+
+    file_path = askstring('Name', 'Enter a name of file to save the generated signal:')
+    if file_path[-4:]!=".wav":
+        file_path+=".wav"
+
+    if file_path:
         normalized_signal = np.int16((encoded_signal / encoded_signal.max()) * 32767)
-        write(filepath, SAMPLE_RATE, normalized_signal)
-        messagebox.showinfo("Success", f"File saved as {filepath}.")
+        write(file_path, SAMPLE_RATE, normalized_signal)
+        messagebox.showinfo("Success", f"File saved as {file_path} .")
 
-
-
-def playGeneratedSignal():
-
-    input_text = text_entry.get("1.0", tk.END).strip()
-    if not input_text:
-        messagebox.showerror("Error", "Please enter some text to encode.")
-        return
+def play_generated_signal():
 
     # Generate the encoded signal
-    encoded_signal = encode_string_to_signal(input_text.lower())
+    encoded_signal = encode()
 
     # Normalize the signal to the range -1.0 to 1.0
     encoded_signal = encoded_signal / np.max(np.abs(encoded_signal))
 
     # Play the sound
-    sd.play(encoded_signal, SAMPLE_RATE)
+    sd.play(encoded_signal, 8000)
 
     # Wait until sound has finished playing
     sd.wait()
@@ -95,11 +97,11 @@ if __name__ == "__main__":
     text_entry.pack()
 
     # Create a button to trigger the encoding and saving
-    save_button = tk.Button(root, text="Encode and Save", command=encode_and_save)
+    save_button = tk.Button(root, text="save the generated signal as (.wav)", command=save_generated_signal)
     save_button.pack()
 
     # Create a button to trigger the play sound
-    play_button = tk.Button(root, text="Play The Signal", command=playGeneratedSignal)
+    play_button = tk.Button(root, text="play the generated signal", command=play_generated_signal)
     play_button.pack()
 
     # Run the GUI event loop
