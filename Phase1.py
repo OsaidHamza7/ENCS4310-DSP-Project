@@ -2,19 +2,20 @@ import numpy as np
 import tkinter as tk
 from tkinter import messagebox
 import sounddevice as sd
+from scipy import fftpack
 from scipy.io.wavfile import write
-
+import time
 from tkinter.simpledialog import askstring
-from tkinter.messagebox import showinfo
+from matplotlib import pyplot as plt
 
 # Constants
-SAMPLE_RATE = 44100  # Sample rate in Hz
+SAMPLE_RATE = 8000  # Sample rate in Hz
 CHARACTER_DURATION = 0.04  # Duration of each character in seconds
-VOLUME = 0.5  # Volume, as a float between 0.0 and 1.0
+NUMBER_SAMPLES = int(SAMPLE_RATE * CHARACTER_DURATION)
 
 # Encoding frequencies for each English character
 FREQUENCIES = {
-    'a': [100, 1100, 2500],'b': [100, 1100, 3000],'c': [100, 1100, 3500],
+    'a': [100, 1100, 2500], 'b': [100, 1100, 3000], 'c': [100, 1100, 3500],
     'd': [100, 1300, 2500], 'e': [100, 1300, 3000], 'f': [100, 1300, 3500],
     'g': [100, 1500, 2500], 'h': [100, 1500, 3000], 'i': [100, 1500, 3500],
     'j': [300, 1100, 2500], 'k': [300, 1100, 3000], 'l': [300, 1100, 3500],
@@ -26,23 +27,19 @@ FREQUENCIES = {
 }
 
 def generate_character_signal(frequencies):
-    tones = []
-    for freq in frequencies:
-        t = np.linspace(0, CHARACTER_DURATION, int(SAMPLE_RATE * CHARACTER_DURATION), False)
-        tone = np.sin(freq * t * 2 * np.pi)
-        tones.append(tone)
-    combined_tone = sum(tones)
-    combined_tone *= VOLUME / np.max(np.abs(combined_tone))
-    return combined_tone
+    character_signal = []
+    for n in range(NUMBER_SAMPLES):
+        character_signal.append (   np.cos(frequencies[0] * 2 * np.pi * n / SAMPLE_RATE)
+                                 + np.cos(frequencies[1] * 2 * np.pi * n / SAMPLE_RATE)
+                                 + np.cos(frequencies[2] * 2 * np.pi * n / SAMPLE_RATE)
+                                )
+    return character_signal
 
 def encode_string_to_signal(input_string):
-    signal = np.array([])
+    signal = []
     for char in input_string:
-        if char in FREQUENCIES:
-            signal = np.concatenate((signal, generate_character_signal(FREQUENCIES[char])))
-
+        signal = np.concatenate( (signal,generate_character_signal(FREQUENCIES[char]) ) , axis=None )
     return signal
-
 
 def getInputString():
     input_text = text_entry.get("1.0", tk.END).strip().lower()
@@ -57,10 +54,9 @@ def encode():
     return encoded_signal
 
 def save_generated_signal():
-
     encoded_signal = encode()
-
     file_path = askstring('Name', 'Enter a name of file to save the generated signal:')
+
     if file_path[-4:]!=".wav":
         file_path+=".wav"
 
@@ -70,24 +66,47 @@ def save_generated_signal():
         messagebox.showinfo("Success", f"File saved as {file_path} .")
 
 def play_generated_signal():
-
     # Generate the encoded signal
     encoded_signal = encode()
-
     # Normalize the signal to the range -1.0 to 1.0
-    encoded_signal = encoded_signal / np.max(np.abs(encoded_signal))
-
+    #encoded_signal = encoded_signal / np.max(np.abs(encoded_signal))
     # Play the sound
-    sd.play(encoded_signal, 8000)
-
+    sd.play(encoded_signal, SAMPLE_RATE)
     # Wait until sound has finished playing
-    sd.wait()
+    #sd.wait()
+    time.sleep(1)
+    plot_signal(encoded_signal,SAMPLE_RATE)
 
+def plot_signal(signal, sampling_freq):
+    t = np.linspace(0, len(signal) / sampling_freq, len(signal), endpoint=False)
+    # Compute the frequency domain
+    freq_values = np.fft.fftfreq(len(signal), 1 / sampling_freq)  # Get the frequencies
+    freq_values = freq_values[:len(freq_values) // 2]  # Use only positive frequencies
+    signal_fft = fftpack.fft(signal)  # Compute the fft
+    magnitude_spectrum = np.abs(signal_fft)[:len(signal_fft) // 2]  # Get the magnitude of the fft
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+
+    # Time domain plot
+    plt.subplot(2, 1, 1)
+    plt.plot(t, signal)
+    plt.title('Time Domain')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+
+    # Frequency domain plot
+    plt.subplot(2, 1, 2)
+    plt.plot(freq_values, magnitude_spectrum)
+    plt.title('Frequency Domain')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Magnitude')
+
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
-
-
     #Create the main window
     root = tk.Tk()
     root.title("Voice-Frequency Encoder")
