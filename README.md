@@ -1,3 +1,11 @@
+# Voice-Frequency Encoder and Decoder for English Alphabet
+
+## Introduction
+This project is an innovative approach to encode and decode English alphabet characters using voice-frequency signals. It is a two-phase project that includes a user-friendly graphical interface for both encoding and decoding processes.
+
+## Technologies
+- **Programming Language**: Python
+- **Libraries/Frameworks**: numpy,tkinter,scipy,sounddevice,matplotlib
 
 ## Usage
 This application allows users to encode and decode English strings using voice frequencies. Follow the steps below to use the application:
