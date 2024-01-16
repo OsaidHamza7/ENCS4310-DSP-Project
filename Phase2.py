@@ -6,8 +6,6 @@ from scipy.signal import butter, lfilter
 import numpy as np
 import tkinter as tk
 from scipy import fftpack
-from matplotlib import pyplot as plt
-
 
 
 global Uploaded_File_Successfully
@@ -43,7 +41,6 @@ def decode_frequencies(frequencies):
     return REVERSE_FREQUENCIES.get(frequencies, '?')  # Return '?' for unknown frequencies
 
 
-
 def bandpass_filter(data, lowcut, highcut, order=5):
     nyquist = 0.5 * SAMPLE_RATE
     low = lowcut / nyquist
@@ -61,20 +58,11 @@ def analyze_segment_with_filters(segment):
         detected_frequencies.append( np.argmax(abs(fftpack.fft(x, FFT_SIZE))) * (SAMPLE_RATE / FFT_SIZE) )
         detected_frequencies[i] = int(round(detected_frequencies[i] / 100) * 100)
 
-    print(detected_frequencies)
     return detected_frequencies
 
 def decode_audio_file_with_filters(file_path):
     # Read the audio file
     x, data = scipy.io.wavfile.read(file_path)
-
-    """
-    if len(data.shape) == 2:
-        data = data.mean(axis=1)
-    # Normalize the data
-    data = data / np.max(np.abs(data))
-    """
-
 
     # Process in 40ms segments
     segment_length = NUMBER_SAMPLES
@@ -91,9 +79,7 @@ def decode_audio_file_with_filters(file_path):
     return decoded_string
 
 
-
-
-def analyze_segment(segment):
+def analyze_segment_with_frequencies(segment):
     # Compute the Fourier transform
     frequencies = np.fft.rfftfreq(len(segment), 1 / SAMPLE_RATE)
     magnitudes = np.abs(fft(segment))
@@ -103,7 +89,7 @@ def analyze_segment(segment):
     a=[freq for freq, mag in highest_freqs]
     return a
 
-def decode_audio_file(file_path):
+def decode_audio_file_with_frequencies(file_path):
     # Read the audio file
     x,data = scipy.io.wavfile.read(file_path)
     # Normalize the data
@@ -116,13 +102,11 @@ def decode_audio_file(file_path):
         segment = data[start:start + segment_length]
         if len(segment) < segment_length:
             break
-        frequencies = analyze_segment(segment)
+        frequencies = analyze_segment_with_frequencies(segment)
         character = decode_frequencies(frequencies)
         decoded_string += character
 
     return decoded_string
-
-
 
 
 def upload_audio_file():
@@ -134,17 +118,14 @@ def upload_audio_file():
         messagebox.showinfo("Success", f"File uploaded successfully")
 
 
-
 def decode_file_frequency():
     global Uploaded_File_Successfully
     if Uploaded_File_Successfully:
-        decoded_string = decode_audio_file(File_Path)
+        decoded_string = decode_audio_file_with_frequencies(File_Path)
         result_text.delete('1.0', tk.END)
         result_text.insert(tk.END, decoded_string)
     else:
         messagebox.showinfo("Error", f"Please upload a file as a (.wav)")
-
-
 
 def decode_file_filters():
     global Uploaded_File_Successfully
@@ -156,10 +137,10 @@ def decode_file_filters():
         messagebox.showinfo("Error", f"Please upload a file as a (.wav)")
 
 
-
 def open_new_window():
     new_window = tk.Toplevel()
     new_window.title("Decoder System")
+    new_window.geometry("400x100")
     button1 = tk.Button(new_window, text="Decode using frequency", command=lambda: decode_file_frequency())
     button1.pack()
 

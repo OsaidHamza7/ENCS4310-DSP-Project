@@ -2,11 +2,12 @@ import numpy as np
 import tkinter as tk
 from tkinter import messagebox
 import sounddevice as sd
-from scipy import fftpack
+from scipy.fftpack import fft
 from scipy.io.wavfile import write
 import time
 from tkinter.simpledialog import askstring
 from matplotlib import pyplot as plt
+
 
 # Constants
 SAMPLE_RATE = 8000  # Sample rate in Hz
@@ -29,7 +30,7 @@ FREQUENCIES = {
 def generate_character_signal(frequencies):
     character_signal = []
     for n in range(NUMBER_SAMPLES):
-        character_signal.append (   np.cos(frequencies[0] * 2 * np.pi * n / SAMPLE_RATE)
+        character_signal.append (  np.cos(frequencies[0] * 2 * np.pi * n / SAMPLE_RATE)
                                  + np.cos(frequencies[1] * 2 * np.pi * n / SAMPLE_RATE)
                                  + np.cos(frequencies[2] * 2 * np.pi * n / SAMPLE_RATE)
                                 )
@@ -73,37 +74,43 @@ def play_generated_signal():
     # Play the sound
     sd.play(encoded_signal, SAMPLE_RATE)
     # Wait until sound has finished playing
-    #sd.wait()
     time.sleep(1)
-    plot_signal(encoded_signal,SAMPLE_RATE)
+    plot_signal(encoded_signal)
 
-def plot_signal(signal, sampling_freq):
-    t = np.linspace(0, len(signal) / sampling_freq, len(signal), endpoint=False)
-    # Compute the frequency domain
-    freq_values = np.fft.fftfreq(len(signal), 1 / sampling_freq)  # Get the frequencies
-    freq_values = freq_values[:len(freq_values) // 2]  # Use only positive frequencies
-    signal_fft = fftpack.fft(signal)  # Compute the fft
-    magnitude_spectrum = np.abs(signal_fft)[:len(signal_fft) // 2]  # Get the magnitude of the fft
+def plot_signal(signal):
 
     # Plotting
     plt.figure(figsize=(10, 6))
 
     # Time domain plot
-    plt.subplot(2, 1, 1)
-    plt.plot(t, signal)
-    plt.title('Time Domain')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Amplitude')
+    plt.subplot(2, 1, 1)  # 2 rows, 1 column, first plot
+    time = np.linspace(0, len(signal) / SAMPLE_RATE, num=len(signal))
+
+    plt.plot(time, signal)
+    plt.title(f"Time Domain: Encoded Signal ")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+    plt.grid(True)
 
     # Frequency domain plot
     plt.subplot(2, 1, 2)
-    plt.plot(freq_values, magnitude_spectrum)
-    plt.title('Frequency Domain')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Magnitude')
+
+    N = len(signal)
+    freq = np.fft.fftfreq(N, 1 / SAMPLE_RATE)
+    freq = freq[:N // 2]
+
+    magnitude = np.abs(fft(signal))
+    magnitude = magnitude[:N // 2]
+
+    plt.plot(freq, magnitude)  # Plot only the positive frequencies
+    plt.title("Frequency Domain: Spectrum")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Magnitude")
+    plt.grid(True)
 
     plt.tight_layout()
     plt.show()
+
 
 
 if __name__ == "__main__":
