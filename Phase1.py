@@ -39,7 +39,11 @@ def generate_character_signal(frequencies):
 def encode_string_to_signal(input_string):
     signal = []
     for char in input_string:
-        signal = np.concatenate( (signal,generate_character_signal(FREQUENCIES[char]) ) , axis=None )
+        if char in FREQUENCIES: # if the character is in the dictionary
+            signal = np.concatenate( (signal,generate_character_signal(FREQUENCIES[char]) ) , axis=None )
+        else:
+            # If the character is not in the dictionary, add a some frequencies to the signal not in the dictionary
+            signal = np.concatenate( (signal,generate_character_signal([600, 1600, 2600]) ) , axis=None )
     return signal
 
 def getInputString():
