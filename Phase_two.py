@@ -7,6 +7,7 @@ import numpy as np
 import tkinter as tk
 from scipy import fftpack
 
+
 # Global variables.
 global Uploaded_File_Successfully
 Uploaded_File_Successfully=False
