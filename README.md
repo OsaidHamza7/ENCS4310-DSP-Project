@@ -5,7 +5,26 @@ This project is an innovative approach to encode and decode English alphabet cha
 
 ## Technologies
 - **Programming Language**: Python
-- **Libraries/Frameworks**: numpy,tkinter,scipy,sounddevice,matplotlib
+- **Libraries/Frameworks**: numpy, tkinter, scipy, sounddevice, matplotlib
+  
+## Technical Specifications
+- **Sample Rate**: 8000 Hz
+- **Character Duration**: 0.04 seconds
+
+## Dependencies
+Before running the project, ensure you have the following Python libraries installed:
+
+- `numpy`: Used for numerical computations and signal processing.
+- `scipy`: Provides tools for signal processing tasks, including Fourier transforms.
+- `matplotlib`: For plotting and visualizing data.
+- `sounddevice`: For audio input and output.
+- `tkinter`: For building the graphical user interface.
+
+You can install these dependencies using pip:
+
+```bash
+pip install numpy scipy matplotlib sounddevice
+```
 
 ## Usage
 This application allows users to encode and decode English strings using voice frequencies. Follow the steps below to use the application:
@@ -37,5 +56,5 @@ The decoder recovers text strings from encoded multi-frequency signals using fre
 - Display the decoded text string.
 
 ## Testing
-The system was thoroughly tested to ensure accurate encoding and decoding. 
-
+The system was thoroughly tested to ensure accurate encoding and decoding.Here are some of examples:
+![](TestCases.mp4)
