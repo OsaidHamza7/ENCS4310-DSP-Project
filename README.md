@@ -57,4 +57,6 @@ The decoder recovers text strings from encoded multi-frequency signals using fre
 
 ## Testing
 The system was thoroughly tested to ensure accurate encoding and decoding.Here are some of examples:
-![](TestCases.mp4)
+
+![image](https://github.com/OsaidHamza7/ENCS4310-DSP-Project/assets/108472343/a2a69feb-af96-4402-a10a-1ecccf8234ef)
+
