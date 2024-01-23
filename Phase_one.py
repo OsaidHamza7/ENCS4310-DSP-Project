@@ -9,6 +9,7 @@ import time
 from tkinter.simpledialog import askstring
 from matplotlib import pyplot as plt
 
+
 # Constants.
 SAMPLE_RATE = 8000  # Sample rate in Hz.
 CHARACTER_DURATION = 0.04  # Duration of each character in seconds.
